@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Thème de l'app : on hérite d'un thème Material3 DayNight sans ActionBar -->
+    <style name="Theme.TheGreatestCocktailApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Tu peux ajouter des personnalisations si besoin -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+
+</resources>
