@@ -14,7 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +33,7 @@ import fr.isen.mocktar.thegreatestcocktailapp.ui.theme.TheGreatestCocktailAppThe
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Lifecycle", "onCreate") // Étape 1 & 9
+        Log.d("Lifecycle", "onCreate")
         enableEdgeToEdge()
         setContent { TheGreatestCocktailAppTheme { MainContent() } }
     }
@@ -83,8 +83,25 @@ fun MainContent() {
 
 @Composable
 fun FeaturedCocktailScreen() {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+
+    val repository = remember { CocktailRepository() }
+    var cocktail by remember { mutableStateOf<Drink?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // 2. Lancer l'appel réseau de manière asynchrone dès que l'écran s'affiche
+    LaunchedEffect(Unit) {
+        isLoading = true
+        cocktail = repository.randomDrink()
+        isLoading = false
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp), 
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.height(40.dp))
+        
+        // Image par défaut (En attendant de mettre Coil pour charger l'URL cocktail?.strDrinkThumb)
         Image(
             painter = painterResource(id = R.drawable.cocktail),
             contentDescription = "Featured",
@@ -92,19 +109,45 @@ fun FeaturedCocktailScreen() {
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Text("Yoghurt Cooler", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            BadgeItem("Yoghurt", Color(0xFF3F51B5))
-            BadgeItem("Non alcoholic", Color(0xFF4CAF50))
+
+        // 3. Gestion de l'affichage de l'état (Chargement vs Données reçues)
+        if (isLoading) {
+            CircularProgressIndicator(color = Color(0xFF3F51B5))
+        } else if (cocktail != null) {
+            // Affiche le vrai nom du cocktail de l'API !
+            Text(
+                text = cocktail?.strDrink ?: "Nom inconnu", 
+                color = Color.White, 
+                fontSize = 32.sp, 
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+               
+                cocktail?.strCategory?.let { BadgeItem(it, Color(0xFF3F51B5)) }
+                cocktail?.strGlass?.let { BadgeItem(it, Color(0xFF4CAF50)) }
+            }
+        } else {
+         
+            Text("Impossible de charger le cocktail", color = Color.Red, fontSize = 16.sp)
         }
     }
 }
 
 @Composable
 fun BadgeItem(text: String, color: Color) {
-    Surface(color = color.copy(alpha = 0.2f), shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, color)) {
-        Text(text = text, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = Color.White, fontSize = 12.sp)
+    Surface(
+        color = color.copy(alpha = 0.2f), 
+        shape = RoundedCornerShape(16.dp), 
+        border = androidx.compose.foundation.BorderStroke(1.dp, color)
+    ) {
+        Text(
+            text = text, 
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), 
+            color = Color.White, 
+            fontSize = 12.sp
+        )
     }
 }
 
