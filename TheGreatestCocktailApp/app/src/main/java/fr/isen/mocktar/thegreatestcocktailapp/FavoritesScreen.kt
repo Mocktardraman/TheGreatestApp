@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.gson.Gson
+import androidx.navigation.compose.currentBackStackEntryAsState
 
-// --- IMPORTS de tes modèles (assure-toi que Models.kt est bien dans ce package ui.theme)
 import fr.isen.mocktar.thegreatestcocktailapp.Drink
 
 // ----------------------------
@@ -29,13 +29,16 @@ import fr.isen.mocktar.thegreatestcocktailapp.Drink
 fun FavoritesScreen(navController: NavController) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val favs = remember { FavoritesManager(ctx) }
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     // ✅ On typpe explicitement la liste pour éviter "Cannot infer type parameter T"
     var list by remember { mutableStateOf<List<Drink>>(emptyList()) }
 
-    // Charger la liste au démarrage de l'écran
-    LaunchedEffect(Unit) {
-        list = favs.all()
+    // Charger la liste au démarrage de l'écran et à chaque retour sur l'onglet Favoris
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == "favorites") {
+            list = favs.all()
+        }
     }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
